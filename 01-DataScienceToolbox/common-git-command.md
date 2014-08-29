@@ -1,13 +1,13 @@
 
 #Change working directory#
 
-##If it is an initial start##
+###If it is an initial start###
 
 For example to desktop
 
      $ cd ~/Desktop/
 
-##If you want to change to a directory that inside your folder##
+###If you want to change to a directory that inside your folder###
 
 For example you want to use repo as your master 
 
