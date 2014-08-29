@@ -3,9 +3,9 @@
 
 ###If it is an initial start###
 
-For example to desktop
+For example to Data-Science-Specialization
 
-     $ cd ~/Desktop/
+     $ cd ~/Documents/GitHub/Data-Science-Specialization
 
 ###If you want to change to a directory that inside your folder###
 
@@ -56,6 +56,12 @@ This is a command that you can add all of the files to committed
 You can add some change for committing files
 
      $ git commit -m "Add the message for changing"
+
+#Pull the changes to local computer#
+
+If there are some changes in github but not in local computer, you have to pull it before push. 
+
+     $ git pull origin master
 
 #Push the changes to github#
 
