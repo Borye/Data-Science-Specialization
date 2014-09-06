@@ -61,3 +61,7 @@ y[good]
 airquality[1:6, ]
 good <- complete.cases(airquality)
 airquality[good, ][1:6, ]
+
+##-------------------Show the number of elements in a table-----
+
+length()
