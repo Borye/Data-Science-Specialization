@@ -65,3 +65,9 @@ airquality[good, ][1:6, ]
 ##-------------------Show the number of elements in a table-----
 
 length()
+
+##-------------------creating logical vectors--------------------
+
+ml <- c(1, 2, 3, 4, 5, 6)
+lv <- ml >4
+lv
