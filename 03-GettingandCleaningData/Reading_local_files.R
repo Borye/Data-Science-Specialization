@@ -21,6 +21,8 @@ head(cameraData)
 
 cameraData <- read.csv("./data/cameraData.csv", stringsAsFactors=FALSE, header=FALSE)
 
+cameraData <- read.table("./data/cameras.csv", sep = "", header = FALSE)
+
 ##--------------------more important parameters-----------------
 ## quote - you can tell R whether there are any quoted values. quote="" means no quotes
 ## na.strings - set the character that represnets a missing value

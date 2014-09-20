@@ -6,6 +6,10 @@ x <- data.frame("var1"=sample(1:5), "var2"=sample(6:10), "var3"=sample(11:15))
 x <- x[sample(1:5), ]                 ## break the order
 x$var2[c(1, 3)]=NA                    ## add NA in var2
 
+## Using aggregate
+## This function is subsetting the dataset1 using two columns "subject" and "activity" by calculate the mean of the rest of the data
+dataset2 <- aggregate(dataset1, list(dataset1$Subject, dataset1$Activity), mean)
+
 ##----------------------------looking single column----------------------------
 
 x[,1]                                 ## column 1
