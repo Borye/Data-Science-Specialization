@@ -71,3 +71,11 @@ length()
 ml <- c(1, 2, 3, 4, 5, 6)
 lv <- ml >4
 lv
+
+##-------------------subset--------------------------------------
+
+data <- subset(data_full, subset=(Date >= "2007-02-01" & Date <= "2007-02-02"))    ## subset data between that date
+
+##---------------------delete one column-------------------------
+
+data$column1 <- NULL              ## column1 inside data is deleted
