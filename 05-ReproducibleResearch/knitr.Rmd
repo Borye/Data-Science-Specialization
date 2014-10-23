@@ -1,0 +1,81 @@
+# Another Example
+LI Bo
+
+## Do not echo code
+
+This is some text. Here is a code chunk
+
+```{r simulation, echo=FALSE}
+set.seed(1)
+x <- rnorm(100)
+mean(x)
+```
+
+
+## Hiding result
+
+This is some text.
+
+```{r simulation 1, echo=FALSE, results="hide"}
+set.seed(2)
+x <- rnorm(100)
+mean(x)
+```
+
+## Inline text computations
+
+```{r computetime, echo=FALSE}
+time <- format(Sys.time(), "%a %b %d %X %Y")
+rand <- rnorm(1)
+```
+
+The current time is `r time`. My favorite random number is `r rand`.
+
+## Incorporating graphics
+
+Let's first simulate some data.
+```{r simulatedata, echo=TRUE}
+x <- rnorm(100); y <- x + rnorm(100, sd = 0.5)
+```
+
+Here is a scatter plot of the data.
+```{r scatterplot, fig.height=4}
+par(mar = c(5, 4, 1, 1), las = 1)
+plot(x, y, main = "My simulated Data")
+```
+
+## Making tables with xtable
+
+```{r fitmodel}
+library(datasets)
+data(airquality)
+fit <- lm(Ozone ~ Wind + Temp + Solar.R, data = airquality)
+```
+
+Here is a table of regression coefficients
+```{r showtable, results="asis"}
+library(xtable)
+xt <- xtable(summary(fit))
+print(xt, type = "html")
+```
+
+## Setting Global Options
+
+```{r setoptions, echo=FALSE}
+library(knitr)
+opts_chunk$set(echo = FALSE, results = "hide")
+```
+
+First simulate data
+```{r simulatedata 1, echo=TRUE}
+x <- rnorm(100); y <- x + rnorm(100, sd = 0.5)
+```
+
+Here is a scatterplot of the data
+
+```{r scaterplot 1, fig.height=4}
+par(mar = c(5, 4, 1, 1), las = 1)
+plot(x, y, main = "My simulated DATA")
+```
+
+
