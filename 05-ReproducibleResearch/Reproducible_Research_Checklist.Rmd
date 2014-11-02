@@ -1,0 +1,21 @@
+Reproducible Research Checklist
+===============================
+
+
+* Are we doing good science?
+
+* Was any part of this analysis done by hand?
+
+>       if so, are those parts *precisely* documnet?
+>       Dose the documentation match reality?
+
+* Have we taught a computer to do as much as possible (i.e. coded)?
+
+* Are we using a version controal system?
+
+* Have we documneted our software environment?
+
+* Have we saved any output that we cannot reconstruct from original data + code?
+
+* How far back in the analysis pipeline can we go before our results are no longer (automatically) reproducible?
+

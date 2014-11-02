@@ -1,0 +1,106 @@
+---
+title: Severe Weather Events Across the United States that Affect Population Health
+  and Economic
+author: "Borye"
+date: "Saturday, October 25, 2014"
+output: html_document
+---
+
+##Synopsis##
+
+Storms and other severe weather events can cause both public health and economic problems for communities and municipalities. Many severe events can result in fatalities, injuries, and property damage, and preventing such outcomes to the extent possible is a key concern. This project involves exploring the U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database. This database tracks characteristics of major storms and weather events in the United States, including when and where they occur, as well as estimates of any fatalities, injuries, and property damage. From these data, we found that,  **TORNADO** is the event that most harmful with respect to population health, while **FLOOD** is the event that most harmful with respect to population health.
+
+##Loading Raw Data##
+
+From the U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database, we obtained the data in the form of a comma-seperated-value file compressed via the bzip2 algorithm to reduce the size.
+
+```{r, cache = TRUE}
+setwd("C:/Users/bliap/Documents/R")
+storm_data <- read.csv("./repdata-data-StormData.csv.bz2", header = TRUE, sep = ",", na.string = "")
+```
+
+After loading, we read a few rows in this dataset
+
+```{r}
+dim(storm_data)
+```
+
+```{r}
+head(storm_data[, 1:13])
+```
+
+Then check the data variables and its characteristics
+```{r, cache = TRUE}
+str(storm_data)
+```
+
+##Data Processing##
+
+###Which Type of Events are Most Harmful with Respect to Population Health###
+
+We will concentrate on two particular variables, **FATALITIES** and **INJUREIS**. So we first gourp the data based on the type of the event **EVTYPE**.
+
+```{r, cache = TRUE}
+data_INJ <- aggregate(storm_data["INJURIES"], list(EVTYPE = storm_data$EVTYPE), sum)
+data_FAT <- aggregate(storm_data["FATALITIES"], list(EVTYPE = storm_data$EVTYPE), sum)
+data_PH <- merge(data_INJ, data_FAT, by = "EVTYPE", all = TRUE)
+summary(data_PH)
+```
+
+We can find out that there are total 979 types of weather events. We made a scatterplot to measure which events has the most inpact on both Injuries and Fatalities
+
+* The average Injuries number is 142.7
+* The average Fatalities ruined number is 15.38
+
+So to make the plot easy to read, I will just choose the point which contains Injuries number larger then the mean. 
+
+###Which Type of Events have the Greatest Economic Consequences###
+
+To address this question, we select variables **PROPDMG**, **PROPDMGEXP**, **CROPDMG**, **CROPDMGEXP**. These 4 variables, given in numerical values, represents the magnitude of the damage caused to the property. However, **PROPDMGEXP** and **CROPDMGEXP** represents the multiples in thousands *K* amd millions *M*, for the corresponding value for crop damage and property damage. Therefore, we just choose the highest multipler **M** for our analysis. 
+
+```{r}
+data.sub <- subset(storm_data, select = c(EVTYPE, PROPDMG, PROPDMGEXP, CROPDMG, CROPDMGEXP))
+data.sub1 <- subset(data.sub, data.sub$PROPDMGEXP %in% "M")
+data.sub2 <- subset(data.sub1, data.sub1$CROPDMGEXP %in% "M")
+head(data.sub2)
+```
+
+First I selected all the value that **PROPDMGEXP** and **CROPDMGEXP** are equals to *B*
+
+```{r}
+data_PRO <- aggregate(data.sub2["PROPDMG"], list(EVTYPE = data.sub2$EVTYPE), sum)
+data_CRO <- aggregate(data.sub2["CROPDMG"], list(EVTYPE = data.sub2$EVTYPE), sum)
+data_ECO <- merge(data_PRO, data_CRO, by = "EVTYPE", all = TRUE)
+```
+
+Then I merged the needed data together to plot a graph. 
+
+##Results##
+
+###Injuries and Fatalities due to severe weather events###
+
+```{r}
+library(ggplot2)
+g <- ggplot(data_PH[data_PH$INJURIES > 142.7, ], aes(INJURIES, FATALITIES, label = EVTYPE))
+g + geom_point(aes(size = INJURIES)) + geom_text(aes(size = INJURIES), colour = "red") + scale_size(range = c(1, 4)) + labs(title = "Injuries and Fatalities due to severe weather events")
+```
+
+According to the plot, **TORNADO** is the event that most harmful with respect to population health. To see it clearly, I choosed top six event, and listed the Injuries number and Fatalities ruined number below. The ording rule is that Injuries first then Fatalities.
+
+```{r}
+head(data_PH[order(data_PH$INJURIES, data_PH$FATALITIES, decreasing = TRUE), ])
+```
+
+###Economic losses due to severe weather phenomena###
+
+```{r}
+library(ggplot2)
+g <- ggplot(data_ECO, aes(PROPDMG, CROPDMG, label = EVTYPE))
+g + geom_point(aes(size = PROPDMG)) + geom_text(aes(size = PROPDMG), colour = "red") + scale_size(range = c(1, 4)) + labs(title = "Economic losses due to severe weather phenomena")
+```
+
+According to the plot, **FLOOD** is the event that most harmful with respect to population health. To see it clearly, I choosed top six event, and listed the Injuries number and Fatalities ruined number below. The ording rule is that Injuries first then Fatalities.
+
+```{r}
+head(data_ECO[order(data_ECO$PROPDMG, data_ECO$CROPDMG, decreasing = TRUE), ])
+```

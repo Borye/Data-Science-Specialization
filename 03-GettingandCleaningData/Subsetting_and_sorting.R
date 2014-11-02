@@ -33,7 +33,7 @@ sort(x$var2, na.lat=TRUE)             ## make NA at last
 ##----------------------------ordering data---------------------------------
 
 x[order(x$var1), ]                    ## ording at var1
-x[order(x$var1, x$var3)]              ## var1 first and then var3
+x[order(x$var1, x$var3), ]              ## var1 first and then var3
 
 ##----------------------------adding rows and columns-----------------------
 
