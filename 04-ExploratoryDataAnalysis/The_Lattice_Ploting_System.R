@@ -32,6 +32,15 @@ xyplot(y ~ x | f, panel = function(x, y, ...){
     panel.lmline(x, y, col = 2)           ## Overlay a simple linear regression line
 })
 
-## example from MAACS
+## example from ToothGrowth
+
+data(ToothGrowth)
+
+bwplot(len ~ dose | supp, data = ToothGrowth)     ## because the class of dose is numeric, so the plot seems more complicated
+
+ToothGrowth$dose <- as.factor(ToothGrowth$dose)   ## covnert the class of dose to factor.
+
+bwplot(len ~ dose | supp, data = ToothGrowth) 
+
 
 

@@ -1,0 +1,67 @@
+---
+title: "Tooth Growth data analysis"
+author: "Borye"
+date: "Friday, November 07, 2014"
+output: pdf_document
+---
+
+###Introduction###
+
+This is a project for the statistical inference class hold by coursera. In this part of the project, I will analyze the ToothGrowth data in the R datasets packages
+
+###1. Load the ToothGrowth data and perform some basic exploratory data analyses###
+
+```{r}
+library(lattice)
+data(ToothGrowth)
+str(ToothGrowth)
+ToothGrowth$dose <- as.factor(ToothGrowth$dose)
+bwplot(len ~ dose | supp, data = ToothGrowth)
+```
+
+###2. Provide a basic summary of the data###
+
+```{r}
+data(ToothGrowth)
+len <- data.frame(ToothGrowth$len)
+colnames(len) <- "len"
+mean_len<- aggregate(len, list(supp = ToothGrowth$supp, dose = ToothGrowth$dose), mean)
+sd_len <- aggregate(len, list(supp = ToothGrowth$supp, dose = ToothGrowth$dose), sd)
+```
+
+The mean of the dataset by supp is shownd below
+
+```{r}
+mean_len
+```
+
+The standard deviation of the dataset by supp is shownd below
+
+```{r}
+sd_len
+```
+
+###3. Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose###
+
+Calculate the confidence interval of the tooth growth by different supp
+
+```{r}
+g1_supp <- mean_len[mean_len$supp == "OJ", ]$len
+g2_supp <- mean_len[mean_len$supp == "VC", ]$len
+t.test(g1_supp - g2_supp)
+```
+
+Calculate the confidence interval of the tooth growth by different dose
+
+```{r}
+g_dose_2 <- mean_len[mean_len$dose == 2.0, ]$len
+g_dose_1 <- mean_len[mean_len$dose == 1.0, ]$len
+g_dose_0.5 <- mean_len[mean_len$dose == 0.5, ]$len
+t.test(g_dose_2 - g_dose_1)
+t.test(g_dose_1 - g_dose_0.5)
+t.test(g_dose_2 - g_dose_0.5)
+```
+
+###4. State your conclusions and the assumptions needed for your conclusions###
+
+From the results we can observed that the **change in supp is the least efficient one**. The efficient of dose increasing is better then the change of supp. If we set the unit of increasing dose to 0.5. Then the **dose increasing from 0.5 to 1 is the most efficient one**. And the **confidence interval of the dose increasing from dose 0.5 to 1 is the narrowest**. 

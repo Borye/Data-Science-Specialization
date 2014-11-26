@@ -1,0 +1,87 @@
+---
+title: "Exploring Relationship Between Variables and MPG"
+author: "Borye"
+date: "Thursday, November 20, 2014"
+output: pdf_document
+---
+
+##Introduction##
+
+This report is for *Motor Trend*, the magazine about the automobile industry, to exploring the relationship between a set of variables and miles per gallon (MPG). Particularly, this report is interested in the following two quetions:
+
+* Is an automatic or manual transmission better for MPG
+* Quantify the MPG difference between automatic and manual transmissions
+
+##Summary of Data##
+
+This report is using the data from **Motor Trend Car Road Tests**. The data was extracted from the 1974 Motor Trend US magazine, and comprises fuel consumption and 10 aspects of automobile design and performance for 32 automobiles (1973-74 models). The data frame with 32 observations on 11 variables. All variables are list as follow:
+
+* Miles/(US) gallon `(mpg)`
+* Number of cylinders `(cyl)`
+* Displacement (cu.in.) `(disp)`
+* Gross horsepower `(hp)`
+* Rear axle ratio `(drat)`
+* Weight (lb/1000) `(wt)`
+* 1/4 mile time `(qsec)`
+* V/S `(V/S)`
+* Transmission (0 = automatic, 1 = manual) `(am)`
+* Number of forward gears `(gear)`
+* Number of carburetors `(carb)`
+
+##Exploratory Analysis##
+
+At first, a boxplot of mtcars shows the diffrence between automatic and manual transmission to the MPG [*Figure 1*]. It is clear that from the plot, manual transmission contribute more MPG compare to the automatic transmission. Secondly, a pairplot is presented to explore the relationship between all the different variables [*Figrue 2*]. From this figure, we can observed that lots of variables have the linear relationship between MPG. To clearly examine this, a correlation table is presented to see the exact correlation between variables and MPG [*Table 1*]. According to the table, (**drat = 0.681**, **qsec = 0.419**, **vs = 0.664**, **gear = 0.480**, and **am = 0.600**) are the variables that have a positive linear relationship between MPG. So these variables are chosen to build the model.
+
+##Model##
+
+After the basic variable selection, we have chosen (wt, qsec, and am) to form the model. To find the model, we use the method of anova table to have a further selection of the variables[*Table 2*].
+The basic model is just lm(mpg ~ am, mtcars). From the analysis above, we could obtain a new model which include the other variables which have great linear effect on the MPG. So the proposed new model is lm(mpg ~ am + wt + qsec, mtcars). From table 2, it can be seen that a p-value of 1.55e-09 was obtained. This value is very small, which means that the addition of the new variables are significant to improving the model. Summary of the model shows that the slop of am is 2.93, Which means that the average increase of MPG from Automatic to Manual transmission is 2.93 [*Table 3*].  
+
+##Statistical Inference##
+
+A Two Sample t-test was conducted between the different transmission types. The null hypothesis that transmission types don't have an effect on the MPG is discarded for a p-value greater than 0.05. The results are shown in [*Table 4*]. The p-value of 0.001374 and difference in means show that manual transmission has significantly more MPG than automatic.
+
+##Conclusion##
+
+The transmission type of a car has a significant effect on its fuel efficiency. According to the model, manual transmission, on average, has **2.93** MPG more than automatics. According to the boxplot, manual transmission has **7.2** MPG more than automatics.
+
+##Appendix##
+
+**Figure 1**
+
+```{r, echo = FALSE}
+data(mtcars)
+plot(factor(mtcars$am), mtcars$mpg, col = c("red", "blue"), main = "Boxplot of mtcars data", names = c("Automatic", "Manual"), ylab = "MPG")
+```
+
+**Figure 2**
+
+```{r, echo = FALSE}
+pairs(mtcars, panel = panel.smooth, main = "Mtcars data", col = 3 + (mtcars$am > 0))
+```
+
+**Table 1**
+
+```{r, echo = FALSE}
+head(cor(mtcars), 1)
+```
+
+**Table 2**
+
+```{r}
+fit1 <- lm(mpg ~ am, data = mtcars)
+fit2 <- lm(mpg ~ am + wt + qsec, data = mtcars)
+anova(fit1, fit2)
+```
+
+**Table 3**
+
+```{r}
+summary(fit2)$coef
+```
+
+**Table 4**
+
+```{r, echo = FALSE}
+t.test(mpg ~ am, data = mtcars)
+```
