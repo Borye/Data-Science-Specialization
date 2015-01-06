@@ -70,7 +70,7 @@ names(training)
 training_new <- training[, grep("IL", names(training))]
 training_new <- training_new[, -13]
 
-preProc <- preProcess(training_new, method = "pca", thresh = 0.8)
+preProc <- preProcess(training_new, method = "pca", thresh = 0.9)
 preProc
 
 ## Answer; 7

@@ -1,0 +1,335 @@
+---
+title: "Activity Analysis of Weight Lifting Exercises"
+author: "Borye"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: cerulean
+    highlight: pygments
+---
+
+##Introduction##
+
+This report is for the capstone project of the **Practical Machine Learning** class, which is the 8th course of the **Data Science Specialization** holding by Johns Hopkins University. The goal of this project is to predict some data, using the technique of machine learning that have teached in the course. At last, we need to submit this report as well as the results of our predictions, to let our peers to grade us on the project we did. 
+
+###Background###
+
+Using devices such as *Jawbone Up*, *Nike FuelBand*, and *Fitbit* is now possible to collect a large amount of data about personal activity relsatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how *much* of a particular activity they do, but they rarely quantify *how well they do it*.
+
+Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E).
+
+**Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes.** Participants were supervised by an experienced weight lifter to make sure the execution complied to the manner they were supposed to simulate. The exercises were performed by six male participants aged between 20-28 years, with little weight lifting experience. We made sure that all participants could easily simulate the mistakes in a safe and controlled manner by using a relatively light dumbbell (1.25kg).
+
+**In this project, my goal is to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants to predict which classes of the excercise they belong to. So that we could know whether they perfom barbell lifts correctly or incorrectly in 5 different ways.** 
+
+###Data###
+
+The training data for this project are available here: 
+
+[https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv)
+
+The test data for this project are available here:
+
+[https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv)
+
+##Exploratory Analysis##
+
+In this section, we will load the training data and test data at first. And then, in order to get some basic sense of these datas, we will do some exploratory analysis on them. First we load some packages. 
+
+```{r, message = FALSE}
+library(knitr)
+library(caret)
+library(ggplot2)
+library(rpart)
+library(randomForest)
+library(gbm)
+library(plyr)
+library(base)
+library(rattle)
+```
+
+We load the training data and test data which are already dowanloaded in my working directory.
+
+```{r, cache = TRUE}
+setwd("C:/Users/bliap/Documents/R")
+train = read.csv("pml-training.csv", na.string = c("NA", ""))
+test = read.csv("pml-testing.csv", na.string = c("NA", ""))
+dim(train);dim(test)
+```
+
+We could see from the results that, the training data contain **19622 samples** while the testing data contain **20 samples**. Both the data have **60 features**. Next part of the report will shows the detail information of the data.
+
+###Summary of Data###
+
+This part I will discover the information of the data. First let us have a look about the features which the data contains. 
+
+```{r}
+str(train, list.len = 12)
+```
+
+Above is the structure of the training data. Because there are so many features, I just show the first 12 lines of the structure to save some space. By looking the data, we can find out it contains: `(x)`, `(user_name)`, `(raw_timestamp_part_1)`, `(raw_timestamp_part_2)`, `(cvtd_timestamp)`, `(new_window)`, `(num_window)`, `(classe)`, and 52 features collected from different accelerometers sensors. Within these features, `(classe)` is the *outcome* that we have to predict, others are the *predictors* we may use to predict the outcome. 
+
+###Predictors Plotting###
+
+To have a more intuitive understanding about the predictors, I will show a scatter plot of the 7 features we discussed before. 
+
+```{r}
+featurePlot(x = train[, c("X", "user_name", "raw_timestamp_part_1", "raw_timestamp_part_2", "cvtd_timestamp", "new_window", "num_window", "classe")], y = train$classe, plot = "pairs")
+```
+
+We can see from this scatter plot that all other 6 predictors have a strong relationship with `(classe)`. And some of those predictors also present strong relationship within each others. This section, we did some basical summary and plotting, and have some knowledge of the train data. Next section. I will do some data preprocessing. 
+
+##Data Preprocessing##
+
+In this section, I will do some data preprocessing, in order to prepare the data for the machine learning process. Since not all of the features are suitable for the machine learning model. So I will do some feature selection. 
+
+###Feature Selection###
+
+Through the summary and scatter plot of the data, I have discovered some issues of the data, which may cause some problems when I do machine learning. So I have to do some feature selection to make sure the accuracy when I use the learning model, and it will not waste so much time. These problems are listed as belows:
+
+* Some features like `(x)` or `(use_name)` are not relative to our research. Though it may shows a strong relationship between the outcome, but that is meaningless. 
+* For the other sensor features, all of them should be numeric type. However, some of the features are shown as factor type. For example, `(kurtosis_roll_belt)`
+* There are lots of missing values (NA) in some of the features. For example, `(kurtosis_roll_belt)`
+
+To solve these problems, first I remove all of the features which contain NA. While, I also convert all of the values collected from accelerometers sensors to numeric type, hence a lot of values are factor. Also I do all this process to the test data again for the prediction in future.
+
+```{r, warning = FALSE}
+num_na <- 0
+for(i in 7 : dim(train)[2] - 1){
+    if(class(train[, i]) != "numeric"){
+        train[, i] <- as.numeric(as.character(train[, i]))
+    }
+    if(sum(is.na(train[, i])) != 0){
+         num_na <- c(num_na, i)
+    }
+}
+num_na <- num_na[-1]
+train <- train[, -num_na]
+
+num_na <- 0
+for(i in 7 : dim(test)[2] - 1){
+    if(class(test[, i]) != "numeric"){
+        test[, i] <- as.numeric(as.character(test[, i]))
+    }
+    if(sum(is.na(test[, i])) != 0){
+        num_na <- c(num_na, i)
+    }
+}
+num_na <- num_na[-1]
+test <- test[, -num_na]
+
+str(train, list.len = 12)
+```
+
+Then I have also shown the 12 lines of the structure of the train data. In the next step, I will remove `(x)`, `(user_name)`, `(raw_timestamp_part_1)`, `(raw_timestamp_part_2)`, `(cvtd_timestamp)`, `(num_window)` 6 features, since these features are meaningless for the learning process.
+
+```{r}
+train <- train[, -c(1, 2, 3, 4, 5, 6)]
+```
+
+At last, I have checked that whether there are any features has zero variance. The answer is none.
+
+```{r}
+nearZeroVar(train, saveMetrics = TRUE)
+str(train, list.len = 12)
+```
+
+###Cross Validation###
+
+Cross validation is in order to *avoid overfitting*, and estimate *out of sample error*. There are lots of different models of cross validation. In this project, I am using the **K-Fold** cross validation. To balance the bias-variance trade off, I choose **k = 10**.
+
+```{r}
+set.seed(999)
+
+folds <- createFolds(y = train$classe, k = 10, list = TRUE, returnTrain = TRUE) 
+
+training <- list(train[folds[[1]], ])    
+validing <- list(train[-folds[[1]], ])
+
+for(i in 1 : 10){training[[i]] <- train[folds[[i]], ]}
+for(i in 1 : 10){validing[[i]] <- train[-folds[[i]], ]}
+
+sapply(folds, length)
+```
+
+I created 10 folds within the original train data. Above shows the size of each the 10 folds. I created a list called `(training)` contained all of the 10 datasets for *training*, while I created a list called `(validing)` which preserved all of the 10 datasets for *cross validation*. 
+
+##Machine Learning##
+
+The project need me to predict which class does a movement belongs to. So it is a standard classification problem. So I have choosed three classification machine learning algorithm: **Bagging**, **Random Forest**, and **Boosting**. Next I will present the results of all the three algorithms, and then compare them.
+
+###Bagging###
+
+Bagging is based on the theory of decision tree. It use the bootstrap method to select multiple of trees, and then average the result. So it can reduce the variance of the outcome compare to the original decision trees, hence to improve the accuracy. First, I will choose one of the training - validing set to present the result of bagging.
+
+```{r, cache = TRUE, warning = FALSE}
+set.seed(999)
+modFit_rpart <- rpart(classe ~ ., method = "class", data = training[[1]])
+```
+
+```{r, warning = FALSE}
+fancyRpartPlot(modFit_rpart)
+```
+
+This figure shows the structure of the tree.
+
+```{r, cache = TRUE}
+pred_rpart <- predict(modFit_rpart, validing[[1]], type = "class")
+confusionMatrix(validing[[1]]$classe, pred_rpart)
+```
+
+This is the *confusion matrix* of the prediction. We can see from this matrix, the accuracy of this prediction is **73.97%**. Next I will use the all 10 training set and cross validation set to calculate the expected out of sample error. 
+
+```{r, cache = TRUE}
+error_rpart <- rep(NA, 10)
+set.seed(999)
+for(i in 1 : 10){
+    modFit_rpart <- rpart(classe ~ ., method = "class", data = training[[i]])
+    pred_rpart <- predict(modFit_rpart, validing[[i]], type = "class")
+    error_rpart[i] <- 1 - confusionMatrix(validing[[i]]$classe, pred_rpart)$overall[1]
+}
+
+OsamError_rpart <- sqrt(mean(error_rpart^2))
+
+print(error_rpart)
+```
+
+These shows the error rate of every train - cross validation sets.
+
+```{r}
+print(OsamError_rpart)
+```
+
+The expected *Root Mean Square* out of sample error of using bagging is **0.2576**. I am not satisfy with this error rate. So next I will try the random forest algorithm.
+
+###Random Forest###
+
+Random Forest provide an improvement over bagged tree by *decorrelates* the trees. Random forest will not use all of the predictors after a split. It will use a subset of the predictors. And this will continuous decrease the variance of the outcome. First, I will choose one of the training - validing set to present the result of random forest. Here I use `(mtry = 30)`, indicates that there are 30 predictors will be considered for each split of the tree. 
+
+```{r, cache = TRUE}
+set.seed(999)
+modFit_rf <- randomForest(classe ~ ., data = training[[1]], mtry = 30, importance = TRUE)
+```
+```{r, warning = FALSE}
+varImpPlot(modFit_rf, type = 1, pch = 19, col = 1, cex = 0.7, main = "")
+```
+
+This is the plot of **Variable Importance**. For this train dataset, **roll_belt** has the variable that has the most importance. 
+
+```{r}
+pred_rf <- predict(modFit_rf, validing[[1]])
+confusionMatrix(validing[[1]]$classe, pred_rf)
+```
+
+This is the *confusion matrix* of the prediction. We can see from this matrix, the accuracy of this prediction is **99.44%**. Next I will use the all 10 training set and cross validation set to calculate the expected out of sample error.
+
+```{r, cache = TRUE}
+error_rf <- rep(NA, 10)
+set.seed(999)
+for(i in 1 : 10){
+    modFit_rf <- randomForest(classe ~ ., data = training[[i]], mtry = 30, importance = FALSE)
+    pred_rf <- predict(modFit_rf, validing[[i]], type = "class")
+    error_rf[i] <- 1 - confusionMatrix(validing[[i]]$classe, pred_rf)$overall[1]
+}
+
+OsamError_rf <- sqrt(mean(error_rf^2))
+
+print(error_rf)
+```
+
+These shows the error rate of every train - cross validation sets.
+
+```{r}
+print(OsamError_rf)
+```
+
+The expected *Root Mean Square* out of sample error of the random forest method is **0.0058**, which is much smaller compare to the bagging model. So next I will try boosting, to find out which model has the most accuracy or the smallest out of sample error on this dataset. 
+
+###Boosting###
+
+Boosting is another approach for improving the predictions results from a decision tree. I works in a similar way as random forest, which is each tree is grown using information from previously grown trees. Boosting does not involve bootstrap sampling, instead each tree is fit on a modified version of the original dataset. 
+
+```{r, cache = TRUE, warning = FALSE}
+set.seed(999)
+modFit_gbm <- gbm(classe ~ ., data = training[[1]], distribution = "multinomial", n.trees = 2000, shrinkage = 0.01, interaction.depth = 4, verbose = FALSE)
+```
+
+Here I use gbm package to train the data. `(distribution = "multinomial")` means that I am using multinomial method to train a multiple classification problem. `(n.trees = 2000)` indicates that I am using 2000 trees to train my data. `(shrinkage = 0.01)` shrinkage parameter controls the rate at which boosting learns. Smaller number of shrinkage parameter will lead to more accuracy but will cost more time. `(interaction depth = 4)` means number of splits in each tree. Here I choose the number of splits equal to 4. 
+
+```{r, result = FALSE, warning = FALSE, message = FALSE}
+pred_gbm <- predict(modFit_gbm, validing[[1]], n.trees = gbm.perf(modFit_gbm, plot.it = FALSE), type = "response")
+```
+
+```{r, results = "hide"}
+summary(modFit_gbm)
+```
+
+The figure above shows the variable importance. It shows that **roll_belt** is the variable which has the most importance. This result is as same as the variable importance calculate by the random forest model. 
+
+```{r}
+pred_gbm_value <- rep(NA, dim(validing[[1]])[1])
+for(i in 1 : dim(pred_gbm)[1]){
+    pred_gbm_value[i] <- LETTERS[as.numeric(which.max(pred_gbm[, , 1][i, ]))]
+}
+confusionMatrix(validing[[1]]$classe, pred_gbm_value)
+```
+
+Because the prediction result is the probability of each class be choosed. So to calculate the confusion matrix, I have chosen the class which has the highest probablity within every samples. The above code chunk also shows that the accuracy is **97.61%**. 
+
+```{r, cache = TRUE, warning = FALSE}
+set.seed(999)
+error_gbm = rep(NA, 5)
+for(i in 1 : 5){
+    modFit_gbm <- gbm(classe ~ ., data = training[[i]], distribution = "multinomial", n.trees = 2000, shrinkage = 0.01, interaction.depth = 4, verbose = FALSE)   
+    pred_gbm <- predict(modFit_gbm, validing[[i]], n.trees = 2000, type = "response")
+    pred_gbm_value <- rep(NA, dim(validing[[i]])[1])
+    for(j in 1 : dim(pred_gbm)[1]){
+        pred_gbm_value[j] <- LETTERS[as.numeric(which.max(pred_gbm[, , 1][j, ]))]
+    }
+    error_gbm[i] <- 1 - confusionMatrix(validing[[i]]$classe, pred_gbm_value)$overall[1]
+}
+
+OsamError_gbm <- mean(error_gbm^2)
+
+print(error_gbm)
+```
+
+At last, I have calculated the expected out of sample error. Because the memory limited of my current computer, I could not complete calculation using all 10 training validation pairs. So I have chosen the first 5 training validation pairs to expect the out of sample error. Above shows the error rate of all 5 pairs. 
+
+```{r}
+print(sqrt(OsamError_gbm))
+```
+
+The expected *Root Mean Square* out of sample error of using boosting model on this dataset is **0.0162**
+
+##Conclusion##
+
+In this project, I have used three machine learning classification models *Bagging*, *Random Forest*, and *Boosting* to classified five class of movement using the data collected from accelerometers sensors. Also I use the *K fold* cross validation method to calculated the expected *out of sample error*. The results are listed as follows,
+
++ Bagging ~ expected out of sample error: **0.2576**
++ Random Forest ~ expected out of sample error: **0.0058**
++ Boosting ~ expected out of sample error: **0.0162**
+
+To sum up, **Random Forest** model has the smallest expected out of sample error. The second model is **Boosting**. **Bagging** has the biggest expected out of sample error on this dataset. 
+
+###Predict Test Set###
+
+Finally, I will present the three prediction results on the test set using the above three method.
+
+```{r, cache = TRUE, warning = FALSE}
+## Prediction result using Bagging model
+as.character(pred_rpart <- predict(modFit_rpart, test, type = "class"))
+
+## Prediction result using Random Forest model
+as.character(pred_rf <- predict(modFit_rf, test))
+
+## Prediction result using Boosting model
+pred_gbm <- predict(modFit_gbm, test, n.trees = 2000, type = "response")
+pred_gbm_value <- rep(NA, dim(test)[1])
+for(i in 1 : dim(pred_gbm)[1]){
+    pred_gbm_value[i] <- LETTERS[as.numeric(which.max(pred_gbm[, , 1][i, ]))]
+}
+as.character(pred_gbm_value)
+```
+
+The **top one** is the restuls for the *Bagging* model, while the **middle one** is for the *Random Forest* model. Finally, the **last one** is for the *Boosting* model.
