@@ -1,0 +1,16 @@
+{
+    "contents" : "Package: topten\nType: Package\nTitle: Building a Prediction Model from TOp 10 Features\nVersion: 1.0\nDate: 2015-01-26\nAuthor: Borye\nMaintainer: Borye <boli.89123@gmail.com>\nDescription: Functions for building and predicting models from selecting the top 10 predictors in the dataset\nLicense: GPL-3\n",
+    "created" : 1422262253460.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3977398374",
+    "id" : "5CCBB396",
+    "lastKnownWriteTime" : 1422261500,
+    "path" : "~/topten/DESCRIPTION",
+    "project_path" : "DESCRIPTION",
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "dcf"
+}

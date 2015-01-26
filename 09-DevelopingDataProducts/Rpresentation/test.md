@@ -1,11 +1,11 @@
 My test presentation
 ========================================================
 author: Borye
-date: Thu Dec 11 13:25:00 2014
+date: Tue Jan 20 10:44:00 2015
+transition: rotate
 
 First Slide
 ========================================================
-transition: linear
 
 For more details on authoring R presentations click the
 **Help** button on the toolbar.

@@ -2,10 +2,10 @@ My test presentation
 ========================================================
 author: Borye
 date: `r date()`
+transition: rotate
 
 First Slide
 ========================================================
-transition: linear
 
 For more details on authoring R presentations click the
 **Help** button on the toolbar.

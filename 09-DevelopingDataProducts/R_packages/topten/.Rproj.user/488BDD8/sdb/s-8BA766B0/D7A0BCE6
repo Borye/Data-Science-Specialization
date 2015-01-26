@@ -1,0 +1,16 @@
+{
+    "contents" : "#' Buiding a model with topten features\n#' \n#' This function develops a prediction algorithm based on the top 10 features\n#' in 'x' that are most predictive of 'y'.\n#' \n#' @param x a n x p matrix of n observations and p predictors\n#' @param y a vector of length n representing the response\n#' @return a vector of coefficients from the final fitted model with top 10 features\n#' @author Borye\n#' @details\n#' This function runs a univariate regression of y on each predictors in x and calculates p-values indicating the significance of the association\n#' the final set of 10 predicotors is taken from the 10 smallest p-values\n#' @seealso \\code{lm}\n#' @export\n#' @importFrom stats lm\n\ntopten <- function(x, y){\n    p <- ncol(x)\n    if(p < 10)\n        stop (\"there are less than 10 predictors\")\n    pvalues <- numeric(p)\n    for(i in seq_len(p)){\n        fit <- lm(y ~ x[, i])\n        summ <- summary(fit)\n        pvalues[i] <- summ$coefficients[2, 4]\n    }\n    ord <- order(pvalues)\n    ord <- ord[1:10]\n    x10 <- x[, ord]\n    fit <- lm(y ~ x10)\n    coef(fit)\n}\n\n#' Prediction with topten features\n#' \n#' This function takes a set of coeeficients produced by the \\code{topten}\n#' function and makes a prediction for each of the values provided in the input x matrix\n#' \n#' @param X a n x 10 matrix containing n new observations\n#' @param b a vector of coefficients obtinad from the \\code{topten} function\n#' @return a numeric vector containing the predicted values\n#' @export\n\n\npredict10 <- function(X, b){\n    X <- cbind(1, X)\n    drop(X %*% b)\n}",
+    "created" : 1422261511722.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3173597886",
+    "id" : "D7A0BCE6",
+    "lastKnownWriteTime" : 1422262219,
+    "path" : "~/topten/R/topten.R",
+    "project_path" : "R/topten.R",
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}

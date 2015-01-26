@@ -12,6 +12,8 @@ library(knitr)
 
 author('test')
 
+## process the rmd file and publish it on the browser
+
 slidify('index.Rmd')
 
 browseURL('index.html')

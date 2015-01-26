@@ -1,0 +1,9 @@
+Package: topten
+Type: Package
+Title: Building a Prediction Model from TOp 10 Features
+Version: 1.0
+Date: 2015-01-26
+Author: Borye
+Maintainer: Borye <boli.89123@gmail.com>
+Description: Functions for building and predicting models from selecting the top 10 predictors in the dataset
+License: GPL-3
